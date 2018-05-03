@@ -40,13 +40,25 @@ public class GlobeSortClient {
 
     public void run(Integer[] values) throws Exception {
         System.out.println("Pinging " + serverStr + "...");
+	long start_ping = System.currentTimeMillis();
         serverStub.ping(Empty.newBuilder().build());
+	long end_ping = System.currentTimeMillis();
         System.out.println("Ping successful.");
+	System.out.println("Round Trip Latency " + (end_ping - start_ping) + " milliseconds");
+	System.out.println("");
 
         System.out.println("Requesting server to sort array");
+	long start_sort = System.currentTimeMillis();
         IntArray request = IntArray.newBuilder().addAllValues(Arrays.asList(values)).build();
-        IntArray response = serverStub.sortIntegers(request);
+        IntArrayResponse response = serverStub.sortIntegers(request);
+	long end_sort = System.currentTimeMillis();
+	long sort_took = response.getTime();
         System.out.println("Sorted array");
+	System.out.println("Application Throughput " + (values.length * 1000 /(end_sort - start_sort)) + " integers/second");
+	System.out.println("One Way Throughput " + (values.length * 1000 / ((end_sort - start_sort) - sort_took))/2 + " integers/second") ;
+	System.out.println("");
+	System.out.println("The sort took " + sort_took + " milliseconds");
+	System.out.println("");
     }
 
     public void shutdown() throws InterruptedException {
@@ -89,8 +101,9 @@ public class GlobeSortClient {
         }
 
         Integer[] values = genValues(cmd_args.getInt("num_values"));
-
+	
         GlobeSortClient client = new GlobeSortClient(cmd_args.getString("server_ip"), cmd_args.getInt("server_port"));
+	
         try {
             client.run(values);
         } finally {

@@ -85,14 +85,17 @@ public class GlobeSortServer {
         }
 
         @Override
-        public void sortIntegers(IntArray req, final StreamObserver<IntArray> responseObserver) {
+        public void sortIntegers(IntArray req, final StreamObserver<IntArrayResponse> responseObserver) {
+	    long start_sort = System.currentTimeMillis();
             Integer[] values = req.getValuesList().toArray(new Integer[req.getValuesList().size()]);
             Arrays.sort(values);
-            IntArray.Builder responseBuilder = IntArray.newBuilder();
+	    long end_sort = System.currentTimeMillis();
+            IntArrayResponse.Builder responseBuilder = IntArrayResponse.newBuilder();
             for(Integer val : values) {
                 responseBuilder.addValues(val);
             }
-            IntArray response = responseBuilder.build();
+	    responseBuilder.setTime(end_sort - start_sort);
+            IntArrayResponse response = responseBuilder.build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         }
